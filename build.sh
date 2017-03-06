@@ -7,7 +7,7 @@ export CPU_JOB_NUM=$(grep processor /proc/cpuinfo | awk '{field=$NF};END{print f
 
 # setup directory name of tool-chain in the ./toolchain
 # ver 4.9-2015q3
-export TOOLCHAIN_DIRECTORY_NAME=gcc-arm-none-eabi-4_9-2015q3
+export TOOLCHAIN_DIRECTORY_NAME="gcc-arm-none-eabi-4_9-2015q3"
 # ver 5.4-2016q3
 # export TOOLCHAIN_DIRECTORY_NAME=gcc-arm-none-eabi-5_4-2016q3
 export TOOLCHAIN_PREFIX_NAME=arm-none-eabi-
@@ -23,7 +23,7 @@ function usage()
 {
     echo
     echo "./build.sh [FC_CONTROLLER] [TARGET NAME]"
-    echo "   [FC_CONTROLLER] cleanflight or betaflight"
+    echo "   [FC_CONTROLLER] cleanflight or betaflight, nf51"
     echo "   [TARGET NAME] LUX_RACE"
     echo
 }
@@ -36,31 +36,32 @@ function check_param()
         exit 0
     fi
     
-    if [ -z $OPTION2_TARGET ]
-    then
-        usage
-        exit 0
-    fi
+#    if [ -z $OPTION2_TARGET ]
+#    then
+#        usage
+#        exit 0
+#    fi
 }
 
 function build()
 {
     {
         START_TIME=`date +%s`
+        make clean
         make -j$CPU_JOB_NUM TARGET=$OPTION2_TARGET
         END_TIME=`date +%s`
 
         echo "============================================================================="
         echo "Build time : $((($END_TIME-$START_TIME)/60)) minutes $((($END_TIME-$START_TIME)%60)) seconds"
         echo "============================================================================="
-    } 2>&1 |tee $BUILD_ROOT_PATH/build.out
+    } 2>&1 |tee $BUILD_ROOT_PATH/output/${OPTION1_FC_CONTROLLER}_build.out
 
     if [ $? != 0 ]
     then
         echo "Build Errror !!!"
     fi
 }
-# 2>&1 |tee $BUILD_ROOT_PATH/build.out
+# 2>&1 |tee $BUILD_ROOT_PATH/output/${OPTION1_FC_CONTROLLER}_build.out
 
 # main routine
 # ----------------------------------------------
@@ -71,7 +72,8 @@ function build()
     echo "Build fc controller for" $OPTION1_FC_CONTROLLER 
     echo
     # add tool-chain bin directory to PATH
-    export PATH=$BUILD_ROOT_PATH/toolchain/$TOOLCHAIN_DIRECTORY_NAME/bin:$PATH
+    export GNU_TOOLCHAIN_ROOT_PATH="${BUILD_ROOT_PATH}/toolchain/${TOOLCHAIN_DIRECTORY_NAME}"
+    export PATH=${GNU_TOOLCHAIN_ROOT_PATH}/bin:$PATH
 
     # check gcc compiler
     ${TOOLCHAIN_PREFIX_NAME}gcc -v
@@ -95,6 +97,12 @@ function build()
         "betaflight")
             pushd .
             cd $OPTION1_FC_CONTROLLER
+            build
+            popd
+            ;;
+        "nf51")
+            pushd .
+            cd ./nRF51_SDK/nf51_drone_inf
             build
             popd
             ;;
