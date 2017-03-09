@@ -102,7 +102,7 @@ function build()
             ;;
         "nf51")
             pushd .
-            cd ./nRF51_SDK/nf51_drone_inf
+            cd ./nRF51_SDK/nf51_drone
             build
             popd
             ;;
