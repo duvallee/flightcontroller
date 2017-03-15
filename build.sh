@@ -106,6 +106,12 @@ function build()
             build
             popd
             ;;
+        "nrf51_new")
+            pushd .
+            cd ./nRF51_SDK_v11/nrf51_drone
+            build
+            popd
+            ;;
         *)
             echo "error"
             usage
