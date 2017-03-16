@@ -14,6 +14,18 @@ export TOOLCHAIN_PREFIX_NAME=arm-none-eabi-
 
 export ARCH=arm
 
+# for check platform, default is linux
+PLATFORM='linux'
+unamestr=`uname`
+if [[ "$unamestr" == 'Linux' ]]; then
+    echo "Select Linux platform"
+    PLATFORM='linux'
+elif [[ "$unamestr" == 'Darwin' ]]; then
+    # os x
+    PLATFORM='mac'
+    echo "Select Darwin platform"
+fi
+
 # -----------------------------------------------------------------
 export OPTION1_FC_CONTROLLER=$1
 export OPTION2_TARGET=$2
@@ -35,7 +47,7 @@ function check_param()
         usage
         exit 0
     fi
-    
+
 #    if [ -z $OPTION2_TARGET ]
 #    then
 #        usage
@@ -69,10 +81,10 @@ function build()
     clear
     check_param
     echo
-    echo "Build fc controller for" $OPTION1_FC_CONTROLLER 
+    echo "Build fc controller for" $OPTION1_FC_CONTROLLER
     echo
     # add tool-chain bin directory to PATH
-    export GNU_TOOLCHAIN_ROOT_PATH="${BUILD_ROOT_PATH}/toolchain/${TOOLCHAIN_DIRECTORY_NAME}"
+    export GNU_TOOLCHAIN_ROOT_PATH="${BUILD_ROOT_PATH}/toolchain/${PLATFORM}/${TOOLCHAIN_DIRECTORY_NAME}"
     export PATH=${GNU_TOOLCHAIN_ROOT_PATH}/bin:$PATH
 
     # check gcc compiler
@@ -117,7 +129,7 @@ function build()
             usage
             exit 0
             ;;
-    
+
     esac
 }
 # ----------------------------------------------
