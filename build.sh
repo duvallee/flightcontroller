@@ -120,7 +120,11 @@ function build()
             ;;
         "nrf51_new")
             pushd .
-            cd ./nRF51_SDK_v11/nrf51_drone
+            cd ./nRF51_SDK_v11/nrf51_uart_central
+            build
+            popd
+            pushd .
+            cd ./nRF51_SDK_v11/nrf51_uart_peripheral
             build
             popd
             ;;
