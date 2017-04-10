@@ -1,13 +1,2 @@
-if [ ! -r output ]
-then
-   mkdir output
-else
-   rm -rf ./output/*
-fi
-
-./build.sh cleanflight STM32F3DISCOVERY
-
-cp ./cleanflight/obj/cleanflight_STM32F3DISCOVERY.hex ./output/.
-cp ./cleanflight/obj/main/cleanflight_STM32F3DISCOVERY.elf ./output/.
-cp ./cleanflight/obj/main/cleanflight_STM32F3DISCOVERY.map ./output/.
-
+./build.sh build=cleanflight target=STM32F3DISCOVERY toolchain=6.3.1
+./build.sh build=betaflight target=STM32F3DISCOVERY toolchain=5.4.1

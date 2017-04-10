@@ -5,136 +5,323 @@
 # get cpu core number
 export CPU_JOB_NUM=$(grep processor /proc/cpuinfo | awk '{field=$NF};END{print field+2}')
 
-# setup directory name of tool-chain in the ./toolchain
-# ver 4.9-2015q3
-export TOOLCHAIN_DIRECTORY_NAME="gcc-arm-none-eabi-4_9-2015q3"
-# ver 5.4-2016q3
-# export TOOLCHAIN_DIRECTORY_NAME=gcc-arm-none-eabi-5_4-2016q3
-export TOOLCHAIN_PREFIX_NAME=arm-none-eabi-
-
 export ARCH=arm
 
-# for check platform, default is linux
-PLATFORM='linux'
-unamestr=`uname`
-if [[ "$unamestr" == 'Linux' ]]; then
-    echo "Select Linux platform"
-    PLATFORM='linux'
-elif [[ "$unamestr" == 'Darwin' ]]; then
-    # os x
-    PLATFORM='mac'
-    echo "Select Darwin platform"
-fi
+export BUILD_TARGET=""
+export TARGET_BOARD=""
+export BUILD_DEBUG=0
+export BUILD_TOOLCHAIN=""
+
+# for betaflight
+export MAJOR_VERSION=3
+export MINOR_VERSION=1
+export SUB_VERSION=0
+
+# toolchain name
+export TOOLCHAIN_4_9_3_PATH_NAME="gcc-arm-none-eabi-4_9-2015q3"
+export TOOLCHAIN_4_9_3_PREFIX="arm-none-eabi"
+
+export TOOLCHAIN_5_4_1_PATH_NAME="gcc-arm-none-eabi-5_4-2016q3"
+export TOOLCHAIN_5_4_1_PREFIX="arm-none-eabi"
+
+export TOOLCHAIN_6_3_1_PATH_NAME="gcc-arm-none-eabi-6-2017-q1-update"
+export TOOLCHAIN_6_3_1_PREFIX="arm-none-eabi"
+
+export TOOLCHAIN_FULL_PATH=""
+export TOOLCHAIN_PREFIX_NAME=""
+
+export PLATFORM=""
+export BUILD_ROOT_PATH=`pwd`
 
 # -----------------------------------------------------------------
-export OPTION1_FC_CONTROLLER=$1
-export OPTION2_TARGET=$2
-export BUILD_ROOT_PATH=`pwd`
 
 function usage()
 {
-    echo
-    echo "./build.sh [FC_CONTROLLER] [TARGET NAME]"
-    echo "   [FC_CONTROLLER] cleanflight or betaflight, nf51"
-    echo "   [TARGET NAME] LUX_RACE"
-    echo
-}
-
-function check_param()
-{
-    if [ -z $OPTION1_FC_CONTROLLER ]
-    then
-        usage
-        exit 0
-    fi
-
-#    if [ -z $OPTION2_TARGET ]
-#    then
-#        usage
-#        exit 0
-#    fi
+	echo
+	echo "./build.sh buid=[BUILD_TARGET] target=[TARGET_BOARD] toolchain=[TOOLCHAIN_VERSION] debug "
+	echo "	[BUILD_TARGET]"
+	echo "		cleanflight"
+	echo "			[TARGET_BOARD]"
+	echo "				LUX_RACE          : "
+	echo "				SPARKY            : "
+	echo "				SPRACINGF3        : "
+	echo "				STM32F3DISCOVERY  :"
+	echo "		betaflight"
+	echo "			[TARGET_BOARD]"
+	echo "				LUX_RACE          : "
+	echo "				SPARKY            : "
+	echo "				SPRACINGF3        : "
+	echo "				STM32F3DISCOVERY  :"
+	echo "		nordic"
+	echo "			[TARGET_BOARD]"
+	echo "				s130_central      : "
+	echo "				s130_peripheral   : "
+	echo "				s130_all          : "
+	echo "	[TOOLCHAIN_VERSION]"
+	echo "		4.9.3                             : "
+	echo "		5.4.1                             : "
+	echo "		6.3.1                             : "
+	echo "	debug                                     : "
+	echo
 }
 
 function build()
 {
-    {
-        START_TIME=`date +%s`
-        make clean
-        make -j$CPU_JOB_NUM TARGET=$OPTION2_TARGET
-        END_TIME=`date +%s`
+	echo "$1 $2"
+	if [ ! -e "./output/$1" ]
+	then
+		echo "mkdir -p ./output/$1"
+		mkdir -p ./output/$1/
+	else
+		echo "rm -rf ./output/$1/*"
+		rm -rf ./output/$1/*
+	fi
 
-        echo "============================================================================="
-        echo "Build time : $((($END_TIME-$START_TIME)/60)) minutes $((($END_TIME-$START_TIME)%60)) seconds"
-        echo "============================================================================="
-    } 2>&1 |tee $BUILD_ROOT_PATH/output/${OPTION1_FC_CONTROLLER}_build.out
+	pushd .
+	cd $1
+	{
+		START_TIME=`date +%s`
 
-    if [ $? != 0 ]
-    then
-        echo "Build Errror !!!"
-    fi
+		make clean
+		make -j$CPU_JOB_NUM TARGET=$2
+
+		if [ $? != 0 ]
+		then
+			echo "Build Errror !!!"
+			return 1
+		fi
+
+		# for cleanflight
+		if [ -e "./obj/$1_$2.hex" ]
+		then
+			echo "cp \"./obj/$1_$2.hex\" $BUILD_ROOT_PATH/output/$1/."
+			cp "./obj/$1_$2.hex" $BUILD_ROOT_PATH/output/$1/.
+		fi
+
+		# for betaflight
+		if [ -e "./obj/$1_${MAJOR_VERSION}.${MINOR_VERSION}.${SUB_VERSION}_$2.hex" ]
+		then
+			echo "cp \"./obj/$1_${MAJOR_VERSION}.${MINOR_VERSION}.${SUB_VERSION}_$2.hex\" $BUILD_ROOT_PATH/output/$1/."
+			cp "./obj/$1_${MAJOR_VERSION}.${MINOR_VERSION}.${SUB_VERSION}_$2.hex" $BUILD_ROOT_PATH/output/$1/.
+		fi
+
+		# for cleanflight & betaflight
+		if [ -e "./obj/main/$1_$2.elf" ]
+		then
+			echo "cp \"./obj/main/$1_$2.elf\" $BUILD_ROOT_PATH/output/$1/."
+			cp "./obj/main/$1_$2.elf" $BUILD_ROOT_PATH/output/$1/.
+
+			echo "cp \"./obj/main/$1_$2.map\" $BUILD_ROOT_PATH/output/$1/."
+			cp "./obj/main/$1_$2.map" $BUILD_ROOT_PATH/output/$1/.
+		fi
+
+		# for central of nordic
+		if [ -e "./_build/nrf51_uart_central.hex" ]
+		then
+			echo "cp ./_build/nrf51_uart_central.hex $BUILD_ROOT_PATH/output/$1/."
+			cp ./_build/nrf51_uart_central.hex $BUILD_ROOT_PATH/output/$1/.
+
+			echo "cp ./_build/nrf51_uart_central.map $BUILD_ROOT_PATH/output/$1/."
+			cp ./_build/nrf51_uart_central.map $BUILD_ROOT_PATH/output/$1/.
+
+			echo "cp ./_build/nrf51_uart_central.out $BUILD_ROOT_PATH/output/$1/."
+			cp ./_build/nrf51_uart_central.out $BUILD_ROOT_PATH/output/$1/.
+		fi
+		
+		# for central of nordic
+		if [ -e "./_build/nrf51_uart_peripheral.hex" ]
+		then
+			echo "cp ./_build/nrf51_uart_peripheral.hex $BUILD_ROOT_PATH/output/$1/."
+			cp ./_build/nrf51_uart_peripheral.hex $BUILD_ROOT_PATH/output/$1/.
+
+			echo "cp ./_build/nrf51_uart_peripheral.map $BUILD_ROOT_PATH/output/$1/."
+			cp ./_build/nrf51_uart_peripheral.map $BUILD_ROOT_PATH/output/$1/.
+
+			echo "cp ./_build/nrf51_uart_peripheral.out $BUILD_ROOT_PATH/output/$1/."
+			cp ./_build/nrf51_uart_peripheral.out $BUILD_ROOT_PATH/output/$1/.
+		fi
+
+		# for nordic
+		if [ -e "../components/softdevice/s130/hex/s130_nrf51_2.0.0_softdevice.hex" ]
+		then
+			echo "cp ../components/softdevice/s130/hex/s130_nrf51_2.0.0_softdevice.hex $BUILD_ROOT_PATH/output/$1/."
+			cp ../components/softdevice/s130/hex/s130_nrf51_2.0.0_softdevice.hex $BUILD_ROOT_PATH/output/$1/.
+		fi
+		
+		END_TIME=`date +%s`
+
+		echo "============================================================================="
+		echo "Build time : $((($END_TIME-$START_TIME)/60)) minutes $((($END_TIME-$START_TIME)%60)) seconds"
+		echo "============================================================================="
+	} 2>&1 |tee $BUILD_ROOT_PATH/output/$1/build.out
+	popd
+	
 }
-# 2>&1 |tee $BUILD_ROOT_PATH/output/${OPTION1_FC_CONTROLLER}_build.out
 
 # main routine
 # ----------------------------------------------
 {
     clear
-    check_param
-    echo
-    echo "Build fc controller for" $OPTION1_FC_CONTROLLER
-    echo
+#    check_param
+
+	 while [ $# -ge 1 ]
+	 do
+		key="$1"
+
+		case $key in
+			"build="*)
+				BUILD_TARGET=${key#build=}
+				;;
+			"target="*)
+				TARGET_BOARD=${key#target=}
+				;;
+			"debug"*)
+				BUILD_DEBUG=1
+				;;
+			"toolchain="*)
+				BUILD_TOOLCHAIN=${key#toolchain=}
+				;;
+			*)
+				echo "Unknown Param : $key"
+				;;
+		esac
+
+		shift
+	 done
+
+	 # check Target
+	 case ${BUILD_TARGET} in
+		"cleanflight")
+			case ${TARGET_BOARD} in
+				"LUX_RACE")
+					;;
+				"SPARKY")
+					;;
+				"SPRACINGF3")
+					;;
+				"STM32F3DISCOVERY")
+					;;
+				*)
+					echo "Unknown TARGET BOARD : ${BUILD_TARGET}"
+					usage
+					exit 1
+					;;
+			esac
+			;;
+		"betaflight")
+			case ${TARGET_BOARD} in
+				"LUX_RACE")
+					;;
+				"SPARKY")
+					;;
+				"SPRACINGF3")
+					;;
+				"STM32F3DISCOVERY")
+					;;
+				*)
+					echo "Unknown TARGET BOARD : ${BUILD_TARGET}"
+					usage
+					exit 1
+					;;
+			esac
+			;;
+		"nordic")
+			case ${TARGET_BOARD} in
+				"s130_central")
+					;;
+				"s130_peripheral")
+					;;
+				"s130_all")
+					;;
+				*)
+					echo "Unknown TARGET BOARD : ${BUILD_TARGET}"
+					usage
+					exit 1
+					;;
+			esac
+			;;
+		*)
+			echo "Unkown target : ${BUILD_TARGET}"
+			usage
+			exit 1
+			;;
+	 esac
+
+	# for check platform, default is linux
+	unamestr=`uname`
+	if [[ "$unamestr" == 'Linux' ]]; then
+		echo "Select Linux platform"
+		PLATFORM='linux'
+	elif [[ "$unamestr" == 'Darwin' ]]; then
+		# os x
+		PLATFORM='mac'
+		echo "Select Darwin platform"
+
+	else
+		echo "Not supported platform : $unamestr"
+		exit 1
+	fi
+
+	 # check toolchain
+	 case ${BUILD_TOOLCHAIN} in
+		"4.9.3")
+			TOOLCHAIN_FULL_PATH=${BUILD_ROOT_PATH}/toolchain/${PLATFORM}/${TOOLCHAIN_4_9_3_PATH_NAME}
+			TOOLCHAIN_PREFIX_NAME=${TOOLCHAIN_4_9_3_PREFIX}
+			;;
+		"5.4.1")
+			TOOLCHAIN_FULL_PATH=${BUILD_ROOT_PATH}/toolchain/${PLATFORM}/${TOOLCHAIN_5_4_1_PATH_NAME}
+			TOOLCHAIN_PREFIX_NAME=${TOOLCHAIN_5_4_1_PREFIX}
+			;;
+		"6.3.1")
+			TOOLCHAIN_FULL_PATH=${BUILD_ROOT_PATH}/toolchain/${PLATFORM}/${TOOLCHAIN_6_3_1_PATH_NAME}
+			TOOLCHAIN_PREFIX_NAME=${TOOLCHAIN_6_3_1_PREFIX}
+			;;
+		*)
+			TOOLCHAIN_FULL_PATH=${BUILD_ROOT_PATH}/toolchain/${PLATFORM}/${TOOLCHAIN_6_3_1_PATH_NAME}
+			TOOLCHAIN_PREFIX_NAME=${TOOLCHAIN_6_3_1_PREFIX}
+			;;
+	 esac
+
     # add tool-chain bin directory to PATH
-    export GNU_TOOLCHAIN_ROOT_PATH="${BUILD_ROOT_PATH}/toolchain/${PLATFORM}/${TOOLCHAIN_DIRECTORY_NAME}"
-    export PATH=${GNU_TOOLCHAIN_ROOT_PATH}/bin:$PATH
+	 echo $TOOLCHAIN_FULL_PATH
+    export PATH=${TOOLCHAIN_FULL_PATH}/bin:$PATH
 
     # check gcc compiler
-    ${TOOLCHAIN_PREFIX_NAME}gcc -v
+    ${TOOLCHAIN_PREFIX_NAME}-gcc -v
 
     if [ $? != 0 ]
     then
         echo
+        echo "Not found tool-chain for ARM Cortex-M !!!"
         echo
-        echo "Not found tool-chain for ARM Cortex-M3 !!!"
-        echo
-        exit 0
+        exit 1
     fi
 
-    case $OPTION1_FC_CONTROLLER in
-        "cleanflight")
-            pushd .
-            cd $OPTION1_FC_CONTROLLER
-            build
-            popd
-            ;;
-        "betaflight")
-            pushd .
-            cd $OPTION1_FC_CONTROLLER
-            build
-            popd
-            ;;
-        "nf51")
-            pushd .
-            cd ./nRF51_SDK/nf51_drone
-            build
-            popd
-            ;;
-        "nrf51_new")
-            pushd .
-            cd ./nRF51_SDK_v11/nrf51_uart_central
-            build
-            popd
-            pushd .
-            cd ./nRF51_SDK_v11/nrf51_uart_peripheral
-            build
-            popd
-            ;;
-        *)
-            echo "error"
-            usage
-            exit 0
-            ;;
-
-    esac
+	 # check Target
+	 case ${BUILD_TARGET} in
+		"cleanflight")
+			build "cleanflight" ${TARGET_BOARD}
+			;;
+		"betaflight")
+			build "betaflight" ${TARGET_BOARD}
+			;;
+		"nordic")
+			export GNU_INSTALL_ROOT=${TOOLCHAIN_FULL_PATH}
+			export GNU_VERSION=${BUILD_TOOLCHAIN}
+			export GNU_PREFIX=${TOOLCHAIN_PREFIX_NAME}
+			case ${TARGET_BOARD} in
+				"s130_central")
+					build "nRF51_SDK_v11/nrf51_uart_central"
+					;;
+				"s130_peripheral")
+					build "nRF51_SDK_v11/nrf51_uart_peripheral"
+					;;
+				"s130_all")
+					build "nRF51_SDK_v11/nrf51_uart_central"
+					build "nRF51_SDK_v11/nrf51_uart_peripheral"
+					;;
+			esac
+	 esac
 }
 # ----------------------------------------------
 

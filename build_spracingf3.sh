@@ -1,13 +1,3 @@
-if [ ! -r output ]
-then
-   mkdir output
-else
-   rm -rf ./output/*
-fi
-
-./build.sh cleanflight SPRACINGF3
-
-cp ./cleanflight/obj/cleanflight_SPRACINGF3.hex ./output/.
-cp ./cleanflight/obj/main/cleanflight_SPRACINGF3.elf ./output/.
-cp ./cleanflight/obj/main/cleanflight_SPRACINGF3.map ./output/.
+./build.sh build=cleanflight target=SPRACINGF3 toolchain=6.3.1
+./build.sh build=betaflight target=SPRACINGF3 toolchain=5.4.1
 
