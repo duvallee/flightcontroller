@@ -83,7 +83,14 @@ function build()
 		START_TIME=`date +%s`
 
 		make clean
-		make -j$CPU_JOB_NUM TARGET=$2
+		if [ ${BUILD_DEBUG} == 1 ]
+		then
+			echo "build : gdb mode"
+			make -j$CPU_JOB_NUM TARGET=$2 DEBUG=GDB
+		else
+			echo "build : none gdb mode"
+			make -j$CPU_JOB_NUM TARGET=$2
+		fi
 
 		if [ $? != 0 ]
 		then
