@@ -86,7 +86,7 @@ function build()
 		if [ ${BUILD_DEBUG} == 1 ]
 		then
 			echo "build : gdb mode"
-			make -j$CPU_JOB_NUM TARGET=$2 DEBUG=GDB
+			make -j$CPU_JOB_NUM TARGET=$2 DEBUG=GDB DEBUG_PORT=DEBUG_SERIAL_UART1
 		else
 			echo "build : none gdb mode"
 			make -j$CPU_JOB_NUM TARGET=$2
