@@ -82,7 +82,7 @@ function build()
 	{
 		START_TIME=`date +%s`
 
-		make clean
+		make clean TARGET=$2
 		if [ ${BUILD_DEBUG} == 1 ]
 		then
 			echo "build : gdb mode"
@@ -98,19 +98,25 @@ function build()
 			return 1
 		fi
 
+        for hex_file in ./obj/*.hex
+        do
+			echo "cp $hex_file $BUILD_ROOT_PATH/output/$1/."
+			cp $hex_file $BUILD_ROOT_PATH/output/$1/.
+        done
+
 		# for cleanflight
-		if [ -e "./obj/$1_$2.hex" ]
-		then
-			echo "cp \"./obj/$1_$2.hex\" $BUILD_ROOT_PATH/output/$1/."
-			cp "./obj/$1_$2.hex" $BUILD_ROOT_PATH/output/$1/.
-		fi
+#		if [ -e "./obj/$1_$2.hex" ]
+#		then
+#			echo "cp \"./obj/$1_$2.hex\" $BUILD_ROOT_PATH/output/$1/."
+#			cp "./obj/$1_$2.hex" $BUILD_ROOT_PATH/output/$1/.
+#		fi
 
 		# for betaflight
-		if [ -e "./obj/$1_${MAJOR_VERSION}.${MINOR_VERSION}.${SUB_VERSION}_$2.hex" ]
-		then
-			echo "cp \"./obj/$1_${MAJOR_VERSION}.${MINOR_VERSION}.${SUB_VERSION}_$2.hex\" $BUILD_ROOT_PATH/output/$1/."
-			cp "./obj/$1_${MAJOR_VERSION}.${MINOR_VERSION}.${SUB_VERSION}_$2.hex" $BUILD_ROOT_PATH/output/$1/.
-		fi
+#		if [ -e "./obj/$1_${MAJOR_VERSION}.${MINOR_VERSION}.${SUB_VERSION}_$2.hex" ]
+#		then
+#			echo "cp \"./obj/$1_${MAJOR_VERSION}.${MINOR_VERSION}.${SUB_VERSION}_$2.hex\" $BUILD_ROOT_PATH/output/$1/."
+#			cp "./obj/$1_${MAJOR_VERSION}.${MINOR_VERSION}.${SUB_VERSION}_$2.hex" $BUILD_ROOT_PATH/output/$1/.
+#		fi
 
 		# for cleanflight & betaflight
 		if [ -e "./obj/main/$1_$2.elf" ]
@@ -134,7 +140,7 @@ function build()
 			echo "cp ./_build/nrf51_uart_central.out $BUILD_ROOT_PATH/output/$1/."
 			cp ./_build/nrf51_uart_central.out $BUILD_ROOT_PATH/output/$1/.
 		fi
-		
+
 		# for central of nordic
 		if [ -e "./_build/nrf51_uart_peripheral.hex" ]
 		then
@@ -154,7 +160,7 @@ function build()
 			echo "cp ../components/softdevice/s130/hex/s130_nrf51_2.0.0_softdevice.hex $BUILD_ROOT_PATH/output/$1/."
 			cp ../components/softdevice/s130/hex/s130_nrf51_2.0.0_softdevice.hex $BUILD_ROOT_PATH/output/$1/.
 		fi
-		
+
 		END_TIME=`date +%s`
 
 		echo "============================================================================="
