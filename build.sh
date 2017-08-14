@@ -57,6 +57,7 @@ function usage()
 	echo "				s130_central      : "
 	echo "				s130_peripheral   : "
 	echo "				s130_all          : "
+   echo "            s130_beacon       : "
 	echo "	[TOOLCHAIN_VERSION]"
 	echo "		4.9.3                             : "
 	echo "		5.4.1                             : "
@@ -246,6 +247,8 @@ function build()
 					;;
 				"s130_all")
 					;;
+				"s130_beacon")
+					;;
 				*)
 					echo "Unknown TARGET BOARD : ${BUILD_TARGET}"
 					usage
@@ -328,6 +331,9 @@ function build()
 					;;
 				"s130_peripheral")
 					build "nRF51_SDK_v11/nrf51_uart_peripheral"
+					;;
+				"s130_beacon")
+					build "nRF51_SDK_v11/nrf51_beacon"
 					;;
 				"s130_all")
 					build "nRF51_SDK_v11/nrf51_uart_central"
