@@ -245,6 +245,8 @@ function build()
 					;;
 				"s130_peripheral")
 					;;
+				"transmitter")
+                    ;;
 				"s130_all")
 					;;
 				"s130_beacon")
@@ -331,6 +333,9 @@ function build()
 					;;
 				"s130_peripheral")
 					build "nRF51_SDK_v11/nrf51_uart_peripheral"
+					;;
+				"transmitter")
+					build "nRF51_SDK_v11/bt_transmitter"
 					;;
 				"s130_beacon")
 					build "nRF51_SDK_v11/nrf51_beacon"
