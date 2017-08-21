@@ -155,6 +155,19 @@ function build()
 			cp ./_build/nrf51_uart_peripheral.out $BUILD_ROOT_PATH/output/$1/.
 		fi
 
+		# for bt_transmitter of nordic
+		if [ -e "./_build/bt_transmitter.hex" ]
+		then
+			echo "cp ./_build/bt_transmitter.hex $BUILD_ROOT_PATH/output/$1/."
+			cp ./_build/bt_transmitter.hex $BUILD_ROOT_PATH/output/$1/.
+
+			echo "cp ./_build/bt_transmitter.map $BUILD_ROOT_PATH/output/$1/."
+			cp ./_build/bt_transmitter.map $BUILD_ROOT_PATH/output/$1/.
+
+			echo "cp ./_build/bt_transmitter.out $BUILD_ROOT_PATH/output/$1/."
+			cp ./_build/bt_transmitter.out $BUILD_ROOT_PATH/output/$1/.
+		fi
+
 		# for nordic
 		if [ -e "../components/softdevice/s130/hex/s130_nrf51_2.0.0_softdevice.hex" ]
 		then
